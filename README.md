@@ -24,7 +24,8 @@ OneMirror is a Docker image of NGINX. With already configured Google Search, Goo
  - and also enable SSL (Please read `nginx/ssl/README.txt`)
  - Build it 
  - `$ docker build -t onemirror .`
- - and use it.
+ - and use it
+ - `$ docker run -p 4664:443 -d onemirror`
 
 ### Known Issues
 
