@@ -2,6 +2,8 @@
 
 OneMirror is a Docker image of NGINX. With already configured Google Search, Google Fonts/Icons, CDNJS and Gravatar proxy, it helps you to start your own mirror site easily.
 
+Thanks to Alpine Linux, the image size is only 9MB compressed (21.3MB decompressed). 
+
 ## Info
 
  - Dockerfile derived from official NGINX Docker (Alpine) Image
