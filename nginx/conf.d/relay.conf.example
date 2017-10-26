@@ -1,0 +1,66 @@
+
+# Example: HSTS enabled reverse proxy for a backend
+
+server {
+    listen 80;
+
+    server_name example.com;
+
+    access_log off;
+
+    return 301 https://example.com$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+
+    server_name example.com;
+
+    access_log off;
+
+    ssl_certificate ssl/server.crt;
+    ssl_certificate_key ssl/server.key;
+
+    ssl_trusted_certificate ssl/server.trusted.crt;
+
+    ssl_ct on;
+    ssl_ct_static_scts ssl/scts/server;
+
+    include hsts-preload.conf;
+
+    return 301 https://www.example.com$request_uri;
+}
+
+server {
+    listen 80;
+
+    server_name www.example.com;
+
+    access_log off;
+
+    return 301 https://www.example.com$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+
+    server_name www.example.com;
+
+    ssl_certificate ssl/server.crt;
+    ssl_certificate_key ssl/server.key;
+
+    ssl_trusted_certificate ssl/server.trusted.crt;
+
+    ssl_ct on;
+    ssl_ct_static_scts ssl/scts/server;
+
+    include hsts.conf;
+
+    location / {
+        proxy_pass http://backend;
+        proxy_set_header Host $http_host;
+
+        include proxy_forwards.conf;
+        include security_headers.conf;
+    }
+}

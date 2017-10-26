@@ -1,0 +1,97 @@
+server {
+    listen 80;
+
+    # Enable SSL (You can also enable HTTP/2)
+    # listen 443 ssl http2;
+
+    # REPLACE ALL OCCURRENCES of "example.com" with your domain
+    server_name example.com;
+
+    # Your SSL certificate (includes your cert and all intermediate CA cert(s)) and private key here
+    # ssl_certificate ssl/server.crt;
+    # ssl_certificate_key ssl/server.key;
+    
+    # To enable OCSP stapling, place all the intermediate CA cert(s) and root CA cert here
+    # ssl_trusted_certificate ssl/server.trusted.crt;
+
+    # To enable Certificate Transparency by TLS Extension, place the SCT files in a directory
+    # ssl_ct on;
+    # ssl_ct_static_scts ssl/scts/server;
+
+    proxy_redirect off;
+
+    # CloudFlare CDNJS
+    location /ajax/libs/ {
+        proxy_pass https://cdnjs.cloudflare.com;
+        proxy_hide_header CF-Cache-Status;
+        proxy_hide_header CF-RAY;
+        proxy_set_header Host cdnjs.cloudflare.com;
+
+        # Avoid to be detected by Multi-Layers CloudFlare
+        proxy_set_header CF-RAY "";
+        proxy_set_header CF-IPCountry "";
+        proxy_set_header CF-Connecting-IP "";
+        proxy_set_header X-Forwarded-For "";
+        proxy_set_header CF-Visitor "";
+        proxy_set_header X-Forwarded-Proto "";
+
+        include caching.conf;
+    }
+
+    # Google Fonts CSS
+    location /css {
+        proxy_pass https://fonts.googleapis.com;
+        proxy_hide_header Alt-Svc;
+        proxy_hide_header Link;
+        proxy_pass_header Server;
+        proxy_set_header Accept-Encoding "";
+        proxy_set_header Host fonts.googleapis.com;
+
+        sub_filter_types text/css;
+        sub_filter_once off;
+        sub_filter "fonts.gstatic.com" "exmaple.com";
+
+        # CSS files of Google Fonts are not able to be cached
+    }
+
+    # Google Material Icon Fonts CSS
+    location /icon {
+        proxy_pass https://fonts.googleapis.com;
+        proxy_hide_header Alt-Svc;
+        proxy_hide_header Link;
+        proxy_pass_header Server;
+        proxy_set_header Accept-Encoding "";
+        proxy_set_header Host fonts.googleapis.com;
+
+        sub_filter_types text/css;
+        sub_filter_once off;
+        sub_filter "fonts.gstatic.com" "exmaple.com";
+
+        # CSS files of Material Icon Fonts are not able to be cached
+    }
+
+    # Gravatar
+    location /avatar/ {
+        proxy_pass https://www.gravatar.com;
+        proxy_hide_header X-nc;
+        proxy_hide_header Link;
+        proxy_pass_header Server;
+        proxy_set_header Host www.gravatar.com;
+
+        include caching.conf;
+    }
+
+    # Google Font Files
+    location /s/ {
+        proxy_pass https://fonts.gstatic.com;
+        proxy_hide_header Alt-Svc;
+        proxy_pass_header Server;
+        proxy_set_header Host fonts.gstatic.com;
+
+        include caching.conf;
+    }
+
+    location / {
+        return 404;
+    }
+ }
