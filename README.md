@@ -18,6 +18,10 @@ Thanks to Alpine Linux, the image size is only 9 MB compressed (20.7 MB decompre
 ### Basic HTTP Mirror for Google Search
 
     $ docker run -p 4664:80 -d bohan/onemirror
+
+### Alternative Image Source besides Docker Hub
+
+    daocloud.io/bohan/onemirror
     
 ### Custom Configuration and SSL
 
