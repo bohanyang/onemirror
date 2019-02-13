@@ -1,13 +1,11 @@
-FROM alpine:3.5
+FROM alpine:3.9
 
-# Originally Derived From: NGINX Docker Maintainers <docker-maint@nginx.com>
-LABEL maintainer="Bohan Yang <contact@bohan.co>"
+# LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
+LABEL maintainer="Brent, Yang Bohan <youthdna@live.com>"
 
-ENV PCRE_VERSION 8.42
-ENV ZLIB_VERSION 1.2.11
-ENV OPENSSL_VERSION 1_0_2o
-ENV NGINX_CT_VERSION 1.3.2
-ENV NGINX_VERSION 1.13.12
+ENV NGINX_VERSION 1.14.2
+ENV GOOGLE_FILTER_MODULE_VERSION 5806afeffe0a773f70f6aa8ef509b9f118ef6c2c
+ENV SUBSTITUTIONS_FILTER_MODULE_VERSION bc58cb11844bc42735bbaef7085ea86ace46d05b
 
 RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
     && CONFIG="\
@@ -54,12 +52,8 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
         --with-compat \
         --with-file-aio \
         --with-http_v2_module \
-        --with-pcre=/usr/src/pcre-$PCRE_VERSION \
-        --with-zlib=/usr/src/zlib-$ZLIB_VERSION \
-        --with-openssl=/usr/src/openssl-OpenSSL_$OPENSSL_VERSION \
-        --add-module=/usr/src/nginx-ct-$NGINX_CT_VERSION \
-        --add-module=/usr/src/ngx_http_google_filter_module \
-        --add-module=/usr/src/ngx_http_substitutions_filter_module \
+        --add-module=/usr/src/ngx_http_google_filter_module-$GOOGLE_FILTER_MODULE_VERSION \
+        --add-module=/usr/src/ngx_http_substitutions_filter_module-$SUBSTITUTIONS_FILTER_MODULE_VERSION \
     " \
     && addgroup -S nginx \
     && adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
@@ -68,22 +62,19 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
         gcc \
         libc-dev \
         make \
+        openssl-dev \
+        pcre-dev \
+        zlib-dev \
         linux-headers \
         curl \
-        gnupg \
+        gnupg1 \
         libxslt-dev \
         gd-dev \
         geoip-dev \
-        git \
-        patch \
-        build-base \
-        perl-dev \
-    && curl -fSL https://ftp.pcre.org/pub/pcre/pcre-$PCRE_VERSION.tar.gz -o pcre.tar.gz \
-    && curl -fSL https://zlib.net/zlib-$ZLIB_VERSION.tar.gz -o zlib.tar.gz \
-    && curl -fSL https://github.com/openssl/openssl/archive/OpenSSL_$OPENSSL_VERSION.tar.gz -o openssl.tar.gz \
-    && curl -fSL https://github.com/grahamedgecombe/nginx-ct/archive/v$NGINX_CT_VERSION.tar.gz -o nginx-ct.tar.gz \
-    && curl -fSL http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
-    && curl -fSL http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc  -o nginx.tar.gz.asc \
+    && curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
+    && curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc -o nginx.tar.gz.asc \
+    && curl -fSL https://github.com/cuber/ngx_http_google_filter_module/archive/$GOOGLE_FILTER_MODULE_VERSION.tar.gz -o ngx_http_google_filter_module.tar.gz \
+    && curl -fSL https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/$SUBSTITUTIONS_FILTER_MODULE_VERSION.tar.gz -o ngx_http_substitutions_filter_module.tar.gz \
     && export GNUPGHOME="$(mktemp -d)" \
     && found=''; \
     for server in \
@@ -97,24 +88,14 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
     done; \
     test -z "$found" && echo >&2 "error: failed to fetch GPG key $GPG_KEYS" && exit 1; \
     gpg --batch --verify nginx.tar.gz.asc nginx.tar.gz \
-    && rm -r "$GNUPGHOME" nginx.tar.gz.asc \
+    && rm -rf "$GNUPGHOME" nginx.tar.gz.asc \
     && mkdir -p /usr/src \
-    && tar -zxC /usr/src -f pcre.tar.gz \
-    && tar -zxC /usr/src -f zlib.tar.gz \
-    && tar -zxC /usr/src -f openssl.tar.gz \
-    && tar -zxC /usr/src -f nginx-ct.tar.gz \
     && tar -zxC /usr/src -f nginx.tar.gz \
-    && rm pcre.tar.gz \
-    && rm zlib.tar.gz \
-    && rm openssl.tar.gz \
-    && rm nginx-ct.tar.gz \
     && rm nginx.tar.gz \
-    && cd /usr/src \
-    && git clone https://github.com/cloudflare/sslconfig.git \
-    && git clone https://github.com/yaoweibin/ngx_http_substitutions_filter_module.git \
-    && git clone https://github.com/cuber/ngx_http_google_filter_module.git \
-    && cd /usr/src/openssl-OpenSSL_$OPENSSL_VERSION \
-    && patch -p1 < /usr/src/sslconfig/patches/openssl__chacha20_poly1305_draft_and_rfc_ossl102j.patch \
+    && tar -zxC /usr/src -f ngx_http_google_filter_module.tar.gz \
+    && rm ngx_http_google_filter_module.tar.gz \
+    && tar -zxC /usr/src -f ngx_http_substitutions_filter_module.tar.gz \
+    && rm ngx_http_substitutions_filter_module.tar.gz \
     && cd /usr/src/nginx-$NGINX_VERSION \
     && ./configure $CONFIG --with-debug \
     && make -j$(getconf _NPROCESSORS_ONLN) \
@@ -139,13 +120,9 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
     && ln -s ../../usr/lib/nginx/modules /etc/nginx/modules \
     && strip /usr/sbin/nginx* \
     && strip /usr/lib/nginx/modules/*.so \
-    && rm -rf /usr/src/pcre-$PCRE_VERSION \
-    && rm -rf /usr/src/zlib-$ZLIB_VERSION \
-    && rm -rf /usr/src/openssl-OpenSSL_$OPENSSL_VERSION \
-    && rm -rf /usr/src/nginx-ct-$NGINX_CT_VERSION \
-    && rm -rf /usr/src/ngx_http_google_filter_module \
-    && rm -rf /usr/src/ngx_http_substitutions_filter_module \
     && rm -rf /usr/src/nginx-$NGINX_VERSION \
+    && rm -rf /usr/src/ngx_http_google_filter_module-$GOOGLE_FILTER_MODULE_VERSION \
+    && rm -rf /usr/src/ngx_http_substitutions_filter_module-$SUBSTITUTIONS_FILTER_MODULE_VERSION \
     \
     # Bring in gettext so we can get `envsubst`, then throw
     # the rest away. To do this, we need to install `gettext`
@@ -164,6 +141,10 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
     && apk del .build-deps \
     && apk del .gettext \
     && mv /tmp/envsubst /usr/local/bin/ \
+    \
+    # Bring in tzdata so users could set the timezones through the environment
+    # variables
+    && apk add --no-cache tzdata \
     \
     # forward request and error logs to docker log collector
     && ln -sf /dev/stdout /var/log/nginx/access.log \
