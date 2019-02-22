@@ -10,8 +10,6 @@ server {
   # ssl_certificate ssl/server.crt;
   # ssl_certificate_key ssl/server.key;
 
-  include proxy_forwards.conf;
-
   # CloudFlare CDNJS
   location /ajax/libs/ {
     proxy_cache cache;
@@ -22,6 +20,7 @@ server {
     proxy_hide_header CF-RAY;
     proxy_hide_header CF-Cache-Status;
     proxy_hide_header Set-Cookie;
+    proxy_hide_header Strict-Transport-Security;
     proxy_hide_header Expect-CT;
     proxy_hide_header Vary;
 
@@ -33,6 +32,8 @@ server {
     proxy_set_header CF-Connecting-IP "";
     proxy_set_header CF-Visitor "";
     proxy_set_header Accept-Encoding "";
+
+    include proxy_forwards.conf;
 
     proxy_pass https://cdnjs.cloudflare.com;
 
@@ -54,11 +55,17 @@ server {
 
     proxy_set_header Accept-Encoding "";
 
+    include proxy_forwards.conf;
+
     proxy_pass https://fonts.googleapis.com;
 
     sub_filter_types text/css;
     sub_filter_once off;
     sub_filter "https://fonts.gstatic.com" "${scheme}://${http_host}";
+
+    limit_except GET HEAD {
+      deny all;
+    }
   }
 
   # Google Icon Fonts CSS
@@ -74,11 +81,17 @@ server {
 
     proxy_set_header Accept-Encoding "";
 
+    include proxy_forwards.conf;
+
     proxy_pass https://fonts.googleapis.com;
 
     sub_filter_types text/css;
     sub_filter_once off;
     sub_filter "https://fonts.gstatic.com" "${scheme}://${http_host}";
+
+    limit_except GET HEAD {
+      deny all;
+    }
   }
 
   # Gravatar
@@ -89,15 +102,17 @@ server {
 
     proxy_hide_header X-nc;
     proxy_hide_header Link;
-    proxy_hide_header Vary;
-
-    proxy_ignore_headers Vary;
+    proxy_hide_header Strict-Transport-Security;
 
     proxy_pass_header Server;
 
-    proxy_set_header Accept-Encoding "";
+    include proxy_forwards.conf;
 
     proxy_pass https://www.gravatar.com;
+
+    limit_except GET HEAD {
+      deny all;
+    }
   }
 
   # Google Font Files
@@ -108,6 +123,7 @@ server {
     add_header X-Cache-Status $upstream_cache_status;
 
     proxy_hide_header Alt-Svc;
+    proxy_hide_header Strict-Transport-Security;
     proxy_hide_header Vary;
 
     proxy_ignore_headers Vary;
@@ -116,6 +132,12 @@ server {
 
     proxy_set_header Accept-Encoding "";
 
+    include proxy_forwards.conf;
+
     proxy_pass https://fonts.gstatic.com;
+
+    limit_except GET HEAD {
+      deny all;
+    }
   }
 }
