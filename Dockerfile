@@ -150,7 +150,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log
 
-COPY nginx /etc/nginx/nginx
+COPY nginx /etc/nginx/
 
 EXPOSE 80
 
