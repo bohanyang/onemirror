@@ -1,7 +1,7 @@
 FROM alpine:3.9
 
 # LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
-LABEL maintainer="Brent, Yang Bohan <youthdna@live.com>"
+LABEL maintainer="Bohan Yang (Brent) <youthdna@live.com>"
 
 ARG NGINX_VERSION 1.14.2
 ARG GOOGLE_FILTER_MODULE_VERSION 5806afeffe0a773f70f6aa8ef509b9f118ef6c2c
@@ -71,10 +71,10 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
     libxslt-dev \
     gd-dev \
     geoip-dev \
-  && curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
-  && curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc -o nginx.tar.gz.asc \
-  && curl -fSL https://github.com/cuber/ngx_http_google_filter_module/archive/$GOOGLE_FILTER_MODULE_VERSION.tar.gz -o ngx_http_google_filter_module.tar.gz \
-  && curl -fSL https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/$SUBSTITUTIONS_FILTER_MODULE_VERSION.tar.gz -o ngx_http_substitutions_filter_module.tar.gz \
+  && curl -fsSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
+  && curl -fsSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc -o nginx.tar.gz.asc \
+  && curl -fsSL https://github.com/cuber/ngx_http_google_filter_module/archive/$GOOGLE_FILTER_MODULE_VERSION.tar.gz -o ngx_http_google_filter_module.tar.gz \
+  && curl -fsSL https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/$SUBSTITUTIONS_FILTER_MODULE_VERSION.tar.gz -o ngx_http_substitutions_filter_module.tar.gz \
   && export GNUPGHOME="$(mktemp -d)" \
   && found=''; \
   for server in \
@@ -90,11 +90,11 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
   gpg --batch --verify nginx.tar.gz.asc nginx.tar.gz \
   && rm -rf "$GNUPGHOME" nginx.tar.gz.asc \
   && mkdir -p /usr/src \
-  && tar -zxC /usr/src -f nginx.tar.gz \
+  && tar -x -f nginx.tar.gz -C /usr/src \
   && rm nginx.tar.gz \
-  && tar -zxC /usr/src -f ngx_http_google_filter_module.tar.gz \
+  && tar -x -f ngx_http_google_filter_module.tar.gz -C /usr/src \
   && rm ngx_http_google_filter_module.tar.gz \
-  && tar -zxC /usr/src -f ngx_http_substitutions_filter_module.tar.gz \
+  && tar -x -f ngx_http_substitutions_filter_module.tar.gz -C /usr/src \
   && rm ngx_http_substitutions_filter_module.tar.gz \
   && cd /usr/src/nginx-$NGINX_VERSION \
   && ./configure $CONFIG --with-debug \
@@ -150,11 +150,9 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log
 
-COPY nginx /etc/nginx/
+COPY nginx /etc/nginx/nginx
 
-RUN nginx -t
-
-EXPOSE 80 443
+EXPOSE 80
 
 STOPSIGNAL SIGTERM
 
