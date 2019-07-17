@@ -1,11 +1,12 @@
-FROM alpine:3.9
+FROM alpine:3.10
 
 # LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 LABEL maintainer="Bohan Yang (Brent) <youthdna@live.com>"
 
-ARG NGINX_VERSION='1.14.2'
-ARG GOOGLE_FILTER_MODULE_VERSION='5806afeffe0a773f70f6aa8ef509b9f118ef6c2c'
-ARG SUBSTITUTIONS_FILTER_MODULE_VERSION='bc58cb11844bc42735bbaef7085ea86ace46d05b'
+ARG NGINX_VERSION=1.14.2
+ARG GOOGLE_FILTER_MODULE_VERSION=5806afeffe0a773f70f6aa8ef509b9f118ef6c2c
+ARG SUBSTITUTIONS_FILTER_MODULE_VERSION=bc58cb11844bc42735bbaef7085ea86ace46d05b
+ARG NGX_BROTLI_VERSION=8104036af9cff4b1d34f22d00ba857e2a93a243c
 
 RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
   && CONFIG="\
@@ -54,6 +55,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
     --with-http_v2_module \
     --add-module=/usr/src/ngx_http_google_filter_module-$GOOGLE_FILTER_MODULE_VERSION \
     --add-module=/usr/src/ngx_http_substitutions_filter_module-$SUBSTITUTIONS_FILTER_MODULE_VERSION \
+    --add-module=/usr/src/ngx_brotli \
   " \
   && addgroup -S nginx \
   && adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
@@ -96,6 +98,9 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
   && rm ngx_http_google_filter_module.tar.gz \
   && tar -x -f ngx_http_substitutions_filter_module.tar.gz -C /usr/src \
   && rm ngx_http_substitutions_filter_module.tar.gz \
+  && git -C /usr/src clone https://github.com/eustas/ngx_brotli.git \
+  && git -C /usr/src/ngx_brotli checkout "$NGX_BROTLI_VERSION" \
+  && git -C /usr/src/ngx_brotli submodule update --init \
   && cd /usr/src/nginx-$NGINX_VERSION \
   && ./configure $CONFIG --with-debug \
   && make -j$(getconf _NPROCESSORS_ONLN) \
@@ -150,6 +155,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log
 
+# Copy all files inside nginx directory into /etc/nginx
 COPY nginx /etc/nginx/
 
 EXPOSE 80
