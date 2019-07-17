@@ -129,6 +129,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
   && rm -rf /usr/src/nginx-$NGINX_VERSION \
   && rm -rf /usr/src/ngx_http_google_filter_module-$GOOGLE_FILTER_MODULE_VERSION \
   && rm -rf /usr/src/ngx_http_substitutions_filter_module-$SUBSTITUTIONS_FILTER_MODULE_VERSION \
+  && rm -rf /usr/src/ngx_brotli \
   \
   # Bring in gettext so we can get `envsubst`, then throw
   # the rest away. To do this, we need to install `gettext`
