@@ -19,7 +19,7 @@ We recommend that you should look through the nginx config files before start us
  * Revised on the basis of [the official nginx Dockerfile](https://github.com/nginxinc/docker-nginx/blob/2364fdc54af554d28ef95b7be381677d10987986/stable/alpine/Dockerfile)
  * nginx 1.14.2
  * Google Search proxy feature with [ngx_http_google_filter_module](https://github.com/cuber/ngx_http_google_filter_module/tree/5806afeffe0a773f70f6aa8ef509b9f118ef6c2c)
- * Brotli compression with [ngx_brotli](https://github.com/eustas/ngx_brotli)
+ * Brotli compression with [ngx_brotli](https://github.com/eustas/ngx_brotli/tree/dc37f658ccb5a51d090dc09d1a2aca2f24309869)
 
 ## Usage
 
